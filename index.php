@@ -100,7 +100,7 @@ if (is_logged_in()) {
                 </div>
 
                 <?php echo csrf_field(); ?>
-                <button type="submit" class="w-full bg-white/[0.08] hover:bg-white/[0.14] text-neutral-200 font-medium py-2.5 rounded-lg transition text-sm cursor-pointer active:scale-[0.98] mt-2">
+                <button type="submit" class="btn-accent w-full py-2.5 rounded-lg text-sm mt-2">
                     Sign In
                 </button>
             </form>

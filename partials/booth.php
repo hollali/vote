@@ -32,8 +32,8 @@ $stmt->close();
 <div class="max-w-2xl mx-auto">
     <!-- Election Header -->
     <div class="text-center mb-8 icon-fade">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/[0.06] mb-4">
-            <svg class="w-7 h-7 text-neutral-400 icon-float" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--accent-light)] mb-4">
+            <svg class="w-7 h-7 text-[var(--accent)] icon-float" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
             </svg>
         </div>
@@ -44,10 +44,9 @@ $stmt->close();
     <!-- Active Election Banner -->
     <div class="card p-4 mb-6 icon-fade" style="animation-delay: 0.05s">
         <div class="flex items-center gap-3">
-            <span class="relative flex h-2 w-2 flex-shrink-0">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neutral-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-neutral-500"></span>
-            </span>
+            <div class="relative flex-shrink-0">
+                <div class="poll-dot"></div>
+            </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-neutral-200"><?= sanitize($active_election['name']) ?></p>
                 <?php if ($active_election['description']): ?>
@@ -63,18 +62,18 @@ $stmt->close();
 
     <!-- Instruction -->
     <div class="flex items-center gap-2 mb-4 px-1">
-        <svg class="w-4 h-4 text-neutral-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <svg class="w-4 h-4 text-[var(--accent)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <p class="text-[11px] text-neutral-500">Click on a candidate to review your choice, then confirm to cast your vote. This action cannot be undone.</p>
     </div>
 
     <!-- Candidate Cards -->
     <div class="space-y-3 stagger">
         <?php foreach ($candidates as $i => $c): ?>
-            <div class="candidate-card card p-5 cursor-pointer hover:border-neutral-600 group"
+            <div class="candidate-card card p-5 cursor-pointer hover:border-[var(--accent-border)] group"
                  onclick="selectCandidate(<?= $c['id'] ?>, '<?= sanitize(addslashes($c['username'])) ?>', '<?= $c['photo'] ?>')"
                  data-id="<?= $c['id'] ?>">
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-xl bg-neutral-800 overflow-hidden ring-2 ring-neutral-700/50 group-hover:ring-neutral-600/50 flex-shrink-0 transition">
+                    <div class="w-16 h-16 rounded-xl bg-neutral-800 overflow-hidden ring-2 ring-neutral-700/50 group-hover:ring-[var(--accent-border)] flex-shrink-0 transition">
                         <img src="<?= $base_url ?>/uploads/<?= htmlspecialchars($c['photo']) ?>" alt="" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1 min-w-0">
@@ -87,8 +86,8 @@ $stmt->close();
                         <?php endif; ?>
                     </div>
                     <div class="flex-shrink-0">
-                        <div class="w-8 h-8 rounded-full bg-white/[0.04] border border-neutral-700 group-hover:border-neutral-500 group-hover:bg-white/[0.08] flex items-center justify-center transition">
-                            <svg class="w-4 h-4 text-neutral-500 group-hover:text-neutral-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-8 h-8 rounded-full bg-white/[0.04] border border-neutral-700 group-hover:border-[var(--accent)] group-hover:bg-[var(--accent-light)] flex items-center justify-center transition">
+                            <svg class="w-4 h-4 text-neutral-500 group-hover:text-[var(--accent)] transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
                             </svg>
                         </div>
@@ -106,7 +105,7 @@ $stmt->close();
     <?php endif; ?>
 
     <div class="mt-6 text-center">
-        <a href="<?= $base_url ?>/partials/dashboard.php" class="text-xs text-neutral-500 hover:text-neutral-300 transition">Back to Dashboard</a>
+        <a href="<?= $base_url ?>/partials/dashboard.php" class="text-xs text-neutral-500 hover:text-[var(--accent)] transition">Back to Dashboard</a>
     </div>
 </div>
 
@@ -129,7 +128,7 @@ $stmt->close();
                 <form id="confirmForm" action="../actions/voting.php" method="POST" class="flex-1" data-loading>
                     <input type="hidden" name="groupid" id="confirm_id">
                     <?php echo csrf_field(); ?>
-                    <button type="submit" class="w-full bg-white/[0.1] hover:bg-white/[0.18] text-neutral-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition cursor-pointer active:scale-[0.97]">
+                    <button type="submit" class="btn-accent w-full text-xs py-2.5 rounded-lg">
                         Confirm Vote
                     </button>
                 </form>

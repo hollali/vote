@@ -83,8 +83,8 @@ $active_election = get_active_election($con);
                     $active = $admin_page === $item['page'];
                 ?>
                 <a href="<?= $base_url ?>/admin/<?= $item['page'] ?>"
-                    class="flex items-center gap-2.5 text-xs font-medium px-3 py-2 rounded-md transition <?= $active ? 'bg-white/[0.08] text-white' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/[0.04]' ?>">
-                    <svg class="w-3.5 h-3.5 flex-shrink-0 <?= $active ? 'text-neutral-300' : 'text-neutral-600' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><?= $item['icon'] ?></svg>
+                    class="flex items-center gap-2.5 text-xs font-medium px-3 py-2 rounded-md transition <?= $active ? 'bg-[var(--accent-light)] text-[var(--accent)]' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/[0.04]' ?>">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 <?= $active ? 'text-[var(--accent)]' : 'text-neutral-600' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><?= $item['icon'] ?></svg>
                     <?= $item['label'] ?>
                 </a>
                 <?php endforeach; ?>

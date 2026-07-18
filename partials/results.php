@@ -92,19 +92,19 @@ if ($active) {
     }
     if ($winner):
     ?>
-    <div class="card p-5 mb-6 icon-fade" style="animation-delay: 0.08s">
+    <div class="card card-winner p-5 mb-6 icon-fade" style="animation-delay: 0.08s">
         <div class="flex items-center gap-2 mb-3">
-            <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-            <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Leading Candidate</h2>
+            <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+            <h2 class="text-xs font-semibold text-[var(--accent)] uppercase tracking-wider">Leading Candidate</h2>
         </div>
         <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-xl bg-neutral-800 overflow-hidden ring-2 ring-neutral-600/50 flex-shrink-0">
+            <div class="w-14 h-14 rounded-xl bg-neutral-800 overflow-hidden ring-2 ring-[var(--accent-border)] flex-shrink-0">
                 <img src="<?= $base_url ?>/uploads/<?= htmlspecialchars($winner['photo']) ?>" alt="" class="w-full h-full object-cover">
             </div>
             <div class="flex-1 min-w-0">
                 <h3 class="text-base font-bold text-neutral-100"><?= sanitize($winner['username']) ?></h3>
                 <div class="flex items-center gap-3 mt-1">
-                    <span class="text-sm font-bold text-neutral-200"><?= intval($winner['votes']) ?> vote<?= intval($winner['votes']) !== 1 ? 's' : '' ?></span>
+                    <span class="text-sm font-bold text-[var(--accent)]"><?= intval($winner['votes']) ?> vote<?= intval($winner['votes']) !== 1 ? 's' : '' ?></span>
                     <span class="text-[11px] text-neutral-500"><?= $total_votes > 0 ? round(($winner['votes'] / $total_votes) * 100) : 0 ?>% of total</span>
                 </div>
             </div>
@@ -123,19 +123,23 @@ if ($active) {
     <div class="space-y-3">
         <?php foreach ($groups as $i => $g): ?>
             <?php $pct = $total_votes > 0 ? round(($g['votes'] / $total_votes) * 100) : 0; ?>
+            <?php $is_winner = $g['votes'] == $max_votes && $max_votes > 0; ?>
             <div class="group">
                 <div class="flex items-center justify-between mb-1.5">
                     <div class="flex items-center gap-2 min-w-0">
-                        <span class="text-[10px] font-bold <?= $g['votes'] === $max_votes && $max_votes > 0 ? 'text-neutral-200' : 'text-neutral-600' ?> bg-white/[0.04] px-1.5 py-0.5 rounded flex-shrink-0">#<?= $i + 1 ?></span>
+                        <span class="text-[10px] font-bold <?= $is_winner ? 'text-[var(--accent)]' : 'text-neutral-600' ?> bg-white/[0.04] px-1.5 py-0.5 rounded flex-shrink-0">#<?= $i + 1 ?></span>
                         <span class="text-xs text-neutral-300 font-medium truncate"><?= sanitize($g['username']) ?></span>
+                        <?php if ($is_winner): ?>
+                            <span class="badge-accent">Leading</span>
+                        <?php endif; ?>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="text-xs font-bold text-neutral-200"><?= intval($g['votes']) ?></span>
+                        <span class="text-xs font-bold <?= $is_winner ? 'text-[var(--accent)]' : 'text-neutral-200' ?>"><?= intval($g['votes']) ?></span>
                         <span class="text-[11px] text-neutral-600 w-8 text-right"><?= $pct ?>%</span>
                     </div>
                 </div>
                 <div class="w-full bg-neutral-800/50 rounded-full h-2 overflow-hidden">
-                    <div class="h-full rounded-full progress-bar <?= $g['votes'] === $max_votes && $max_votes > 0 ? 'bg-neutral-300' : 'bg-neutral-600' ?>"
+                    <div class="h-full rounded-full progress-bar <?= $is_winner ? 'progress-bar-accent' : 'bg-neutral-600' ?>"
                         style="width: <?= $pct ?>%"></div>
                 </div>
             </div>
@@ -149,17 +153,17 @@ if ($active) {
     <?php foreach ($groups as $i => $g): ?>
         <?php $pct = $total_votes > 0 ? round(($g['votes'] / $total_votes) * 100) : 0; ?>
         <?php $is_winner = $g['votes'] == $max_votes && $max_votes > 0; ?>
-        <div class="card p-4 <?= $is_winner ? 'border-neutral-700' : '' ?>">
+        <div class="card p-4 <?= $is_winner ? 'card-winner' : '' ?>">
             <div class="flex items-center gap-3 mb-2.5">
-                <div class="w-10 h-10 rounded-lg bg-neutral-800 flex-shrink-0 overflow-hidden ring-1 <?= $is_winner ? 'ring-neutral-500' : 'ring-neutral-700' ?>">
+                <div class="w-10 h-10 rounded-lg bg-neutral-800 flex-shrink-0 overflow-hidden ring-1 <?= $is_winner ? 'ring-[var(--accent-border)]' : 'ring-neutral-700' ?>">
                     <img src="<?= $base_url ?>/uploads/<?= htmlspecialchars($g['photo']) ?>" class="w-full h-full object-cover" alt="">
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                        <span class="text-[11px] font-bold <?= $is_winner ? 'text-neutral-200' : 'text-neutral-600' ?>">#<?= $i + 1 ?></span>
+                        <span class="text-[11px] font-bold <?= $is_winner ? 'text-[var(--accent)]' : 'text-neutral-600' ?>">#<?= $i + 1 ?></span>
                         <h3 class="text-sm text-neutral-200 font-medium"><?= sanitize($g['username']) ?></h3>
                         <?php if ($is_winner && $total_votes > 0): ?>
-                            <span class="text-[10px] bg-white/[0.08] text-neutral-300 px-1.5 py-0.5 rounded font-medium">LEADING</span>
+                            <span class="badge-accent">Leading</span>
                         <?php endif; ?>
                     </div>
                     <?php if ($g['bio']): ?>
@@ -167,12 +171,12 @@ if ($active) {
                     <?php endif; ?>
                 </div>
                 <div class="text-right flex-shrink-0">
-                    <span class="text-lg font-bold text-neutral-200"><?= intval($g['votes']) ?></span>
+                    <span class="text-lg font-bold <?= $is_winner ? 'text-[var(--accent)]' : 'text-neutral-200' ?>"><?= intval($g['votes']) ?></span>
                     <span class="text-[11px] text-neutral-500 block"><?= $pct ?>%</span>
                 </div>
             </div>
             <div class="w-full bg-neutral-800/50 rounded-full h-1.5 overflow-hidden">
-                <div class="h-full rounded-full progress-bar <?= $is_winner ? 'bg-neutral-300' : 'bg-neutral-600' ?>"
+                <div class="h-full rounded-full progress-bar <?= $is_winner ? 'progress-bar-accent' : 'bg-neutral-600' ?>"
                     style="width: <?= $pct ?>%"></div>
             </div>
         </div>
@@ -188,7 +192,7 @@ if ($active) {
 
 <?php if (!$has_voted && $active): ?>
 <div class="mt-6 text-center icon-fade" style="animation-delay: 0.3s">
-    <a href="<?= $base_url ?>/partials/booth.php" class="inline-flex items-center gap-2 bg-white/[0.08] hover:bg-white/[0.14] text-neutral-200 text-xs font-semibold px-5 py-2.5 rounded-lg transition">
+    <a href="<?= $base_url ?>/partials/booth.php" class="btn-accent-sm inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg>
         Go to Voting Booth
     </a>
