@@ -74,8 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $stmt = $con->prepare("UPDATE userdata SET username = ?, idNum = ?, photo = ? WHERE id = ? AND standard = 'group'");
-                $stmt->bind_param("sssi", $username, $idNum, $photo, $cid);
+                $bio = trim($_POST['bio'] ?? '');
+
+                $stmt = $con->prepare("UPDATE userdata SET username = ?, idNum = ?, photo = ?, bio = ? WHERE id = ? AND standard = 'group'");
+                $stmt->bind_param("ssssi", $username, $idNum, $photo, $bio, $cid);
                 $stmt->execute();
                 $stmt->close();
                 log_audit($con, $_SESSION['id'], 'candidate_edit', "Candidate #$cid updated");
@@ -117,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $active_eid = $active_election ? $active_election['id'] : 0;
 
-$cand_stmt = $con->prepare("SELECT u.id, u.username, u.idNum, u.photo, u.created_at, COALESCE(ev.votes, 0) as votes FROM userdata u LEFT JOIN (SELECT candidate_id, COUNT(*) as votes FROM election_votes WHERE election_id = ? GROUP BY candidate_id) ev ON u.id = ev.candidate_id WHERE u.standard = 'group' ORDER BY votes DESC");
+$cand_stmt = $con->prepare("SELECT u.id, u.username, u.idNum, u.photo, u.bio, u.created_at, COALESCE(ev.votes, 0) as votes FROM userdata u LEFT JOIN (SELECT candidate_id, COUNT(*) as votes FROM election_votes WHERE election_id = ? GROUP BY candidate_id) ev ON u.id = ev.candidate_id WHERE u.standard = 'group' ORDER BY votes DESC");
 $cand_stmt->bind_param("i", $active_eid);
 $cand_stmt->execute();
 $candidates = $cand_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -172,13 +174,13 @@ $cand_stmt->close();
             <tbody>
                 <?php foreach ($candidates as $c): ?>
                 <tr class="border-b border-neutral-800/30">
-                    <td class="py-3 text-xs text-neutral-200 font-medium"><?= sanitize($c['username']) ?></td>
+                    <td class="py-3 text-xs text-neutral-200 font-medium max-w-[120px] truncate" title="<?= sanitize($c['bio'] ?? '') ?>"><?= sanitize($c['username']) ?></td>
                     <td class="py-3 text-xs text-neutral-500"><?= sanitize($c['idNum']) ?></td>
                     <td class="py-3 text-xs text-neutral-200 font-bold"><?= intval($c['votes']) ?></td>
                     <td class="py-3 text-[11px] text-neutral-600"><?= date('M d, Y', strtotime($c['created_at'])) ?></td>
                     <td class="py-3 text-right">
                         <div class="flex items-center justify-end gap-1">
-                            <button onclick="openEditCandidate(<?= $c['id'] ?>, '<?= sanitize(addslashes($c['username'])) ?>', '<?= sanitize($c['idNum']) ?>', '<?= $c['photo'] ?>')" class="text-[11px] text-neutral-500 hover:text-neutral-300 transition cursor-pointer px-2 py-1 rounded hover:bg-white/[0.04]">Edit</button>
+                            <button onclick="openEditCandidate(<?= $c['id'] ?>, '<?= sanitize(addslashes($c['username'])) ?>', '<?= sanitize($c['idNum']) ?>', '<?= $c['photo'] ?>', '<?= sanitize(addslashes($c['bio'] ?? '')) ?>')" class="text-[11px] text-neutral-500 hover:text-neutral-300 transition cursor-pointer px-2 py-1 rounded hover:bg-white/[0.04]">Edit</button>
                             <button onclick="openEditCandidatePw(<?= $c['id'] ?>, '<?= sanitize(addslashes($c['username'])) ?>')" class="text-[11px] text-neutral-500 hover:text-neutral-300 transition cursor-pointer px-2 py-1 rounded hover:bg-white/[0.04]">Password</button>
                             <form method="POST" onsubmit="return confirm('Delete this candidate?')" class="inline">
                                 <input type="hidden" name="action" value="delete_candidate">
@@ -211,6 +213,8 @@ $cand_stmt->close();
                 class="input-field text-xs py-2">
             <input type="text" name="idNum" id="ec_idNum" required maxlength="10" placeholder="10-digit ID"
                 class="input-field text-xs py-2">
+            <textarea name="bio" id="ec_bio" placeholder="Bio / description (optional)" rows="2"
+                class="input-field text-xs py-2 resize-none"></textarea>
             <div>
                 <label class="text-[11px] text-neutral-500">Photo (optional)</label>
                 <input type="file" name="photo" accept="image/*"
@@ -246,10 +250,11 @@ $cand_stmt->close();
 </div>
 
 <script>
-function openEditCandidate(id, name, idNum, photo) {
+function openEditCandidate(id, name, idNum, photo, bio) {
     document.getElementById('ec_id').value = id;
     document.getElementById('ec_name').value = name;
     document.getElementById('ec_idNum').value = idNum;
+    document.getElementById('ec_bio').value = bio || '';
     var photoDiv = document.getElementById('ec_current_photo');
     photoDiv.innerHTML = (photo && photo !== 'default.png') ? 'Current: ' + photo : 'Current: default.png';
     document.getElementById('editCandidateModal').classList.remove('hidden');

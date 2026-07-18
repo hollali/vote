@@ -40,15 +40,23 @@ $stmt->close();
 </div>
 
 <?php if ($active_election): ?>
-<div class="card p-3.5 mb-6 flex items-center gap-3 icon-fade" style="animation-delay: 0.05s">
-    <span class="relative flex h-1.5 w-1.5 flex-shrink-0">
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neutral-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-neutral-500"></span>
-    </span>
-    <div>
-        <p class="text-xs font-medium text-neutral-300"><?= sanitize($active_election['name']) ?></p>
-        <p class="text-[11px] text-neutral-600">Ends <?= date('M d, Y g:i A', strtotime($active_election['end_time'])) ?></p>
+<div class="card p-3.5 mb-6 flex items-center justify-between gap-3 icon-fade" style="animation-delay: 0.05s">
+    <div class="flex items-center gap-3">
+        <span class="relative flex h-1.5 w-1.5 flex-shrink-0">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neutral-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-neutral-500"></span>
+        </span>
+        <div>
+            <p class="text-xs font-medium text-neutral-300"><?= sanitize($active_election['name']) ?></p>
+            <p class="text-[11px] text-neutral-600">Ends <?= date('M d, Y g:i A', strtotime($active_election['end_time'])) ?></p>
+        </div>
     </div>
+    <?php if (!$has_voted): ?>
+        <a href="<?= $base_url ?>/partials/booth.php" class="flex-shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold text-neutral-200 bg-white/[0.08] hover:bg-white/[0.14] px-3 py-1.5 rounded-md transition">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg>
+            Vote Now
+        </a>
+    <?php endif; ?>
 </div>
 <?php endif; ?>
 

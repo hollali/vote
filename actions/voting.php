@@ -33,10 +33,11 @@ if (!$active) {
     exit;
 }
 
-$check = $con->prepare("SELECT id FROM userdata WHERE id = ? AND standard = 'group'");
+$check = $con->prepare("SELECT id, username FROM userdata WHERE id = ? AND standard = 'group'");
 $check->bind_param("i", $gid);
 $check->execute();
-if ($check->get_result()->num_rows === 0) {
+$candidate = $check->get_result()->fetch_assoc();
+if (!$candidate) {
     $check->close();
     set_flash('error', 'Invalid candidate');
     header('Location: ../partials/dashboard.php');
@@ -61,17 +62,20 @@ try {
 
     $con->commit();
 
-    $getgroups = $con->prepare("SELECT username, photo, votes, id FROM userdata WHERE standard = 'group'");
-    $getgroups->execute();
-    $_SESSION['groups'] = $getgroups->get_result()->fetch_all(MYSQLI_ASSOC);
-    $_SESSION['has_voted'] = true;
+    $_SESSION['vote_confirmed'] = [
+        'election_id' => $election_id,
+        'election_name' => $active['name'],
+        'candidate_id' => $gid,
+        'candidate_name' => $candidate['username'],
+        'timestamp' => date('Y-m-d H:i:s'),
+    ];
 
-    log_audit($con, $uid, 'vote_cast', "Voted for candidate #$gid in election #$election_id");
-    set_flash('success', 'Vote cast successfully!');
+    log_audit($con, $uid, 'vote_cast', "Voted for candidate #$gid (" . $candidate['username'] . ") in election #$election_id");
+    header('Location: ../partials/confirmation.php');
+    exit;
 } catch (mysqli_sql_exception $e) {
     $con->rollback();
     set_flash('error', 'You have already voted in this election');
+    header('Location: ../partials/dashboard.php');
+    exit;
 }
-
-header('Location: ../partials/dashboard.php');
-exit;
