@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($validation['valid']) {
             $old_photo = $_SESSION['data']['photo'];
             if ($old_photo !== 'default.png') {
-                @unlink("../uploads/$old_photo");
+                unlink("../uploads/$old_photo");
             }
             move_uploaded_file($validation['tmp'], "../uploads/{$validation['name']}");
             $stmt2 = $con->prepare("UPDATE userdata SET photo = ? WHERE id = ?");
@@ -53,8 +53,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!empty($_POST['new_password'])) {
-        if (strlen($_POST['new_password']) < 6) {
-            set_flash('error', 'New password must be at least 6 characters');
+        if (empty($_POST['current_password'])) {
+            set_flash('error', 'Current password is required to change password');
+            header('Location: ../partials/profile.php');
+            exit;
+        }
+
+        $check_pw = $con->prepare("SELECT password FROM userdata WHERE id = ?");
+        $check_pw->bind_param("i", $_SESSION['id']);
+        $check_pw->execute();
+        $pw_row = $check_pw->get_result()->fetch_assoc();
+        $check_pw->close();
+
+        if (!password_verify($_POST['current_password'], $pw_row['password'])) {
+            set_flash('error', 'Current password is incorrect');
+            header('Location: ../partials/profile.php');
+            exit;
+        }
+
+        if (strlen($_POST['new_password']) < 8) {
+            set_flash('error', 'New password must be at least 8 characters');
             header('Location: ../partials/profile.php');
             exit;
         }
@@ -83,6 +101,7 @@ $stmt = $con->prepare("SELECT * FROM userdata WHERE id = ?");
 $stmt->bind_param("i", $_SESSION['id']);
 $stmt->execute();
 $data = $stmt->get_result()->fetch_assoc();
+unset($data['password']);
 $_SESSION['data'] = $data;
 $stmt->close();
 ?>
@@ -120,12 +139,18 @@ $stmt->close();
 
             <hr class="border-neutral-800/50">
 
+            <div>
+                <label for="current_password" class="block text-xs font-medium text-neutral-400 mb-1.5">Current Password</label>
+                <input type="password" name="current_password" id="current_password"
+                    class="input-field" placeholder="Required to change password">
+            </div>
+
             <p class="text-xs text-neutral-500">Leave blank to keep current password</p>
 
             <div>
                 <label for="new_password" class="block text-xs font-medium text-neutral-400 mb-1.5">New Password</label>
                 <input type="password" name="new_password" id="new_password"
-                    class="input-field" placeholder="Min 6 characters">
+                    class="input-field" placeholder="Min 8 characters">
             </div>
 
             <div>

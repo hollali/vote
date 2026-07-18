@@ -1,6 +1,5 @@
 <?php
-session_start();
-require_once __DIR__ . '/../actions/connect.php';
+require_once __DIR__ . '/connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token()) {
@@ -13,8 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     $confirm = $_POST['confirm_password'];
 
-    if (strlen($password) < 6) {
-        set_flash('error', 'Password must be at least 6 characters');
+    if (strlen($password) < 8) {
+        set_flash('error', 'Password must be at least 8 characters');
         header('Location: ../partials/reset-password.php?token=' . urlencode($token));
         exit;
     }

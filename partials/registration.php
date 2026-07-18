@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once __DIR__ . '/../actions/connect.php';
 $page_title = 'Register - Voting System';
 ?>
@@ -72,7 +71,6 @@ $page_title = 'Register - Voting System';
                         <label for="std" class="block text-xs font-medium text-neutral-400 mb-1.5">Register as</label>
                         <select name="std" id="std" class="input-field appearance-none cursor-pointer">
                             <option value="voter">Voter</option>
-                            <option value="group">Candidate</option>
                         </select>
                     </div>
                 </div>
@@ -81,12 +79,12 @@ $page_title = 'Register - Voting System';
                 <div id="step-2" class="step-content space-y-3 hidden">
                     <div>
                         <label for="password" class="block text-xs font-medium text-neutral-400 mb-1.5">Password</label>
-                        <input type="password" name="password" id="password" required minlength="6"
-                            class="input-field" placeholder="Min 6 characters">
+                        <input type="password" name="password" id="password" required minlength="8"
+                            class="input-field" placeholder="Min 8 characters">
                     </div>
                     <div>
                         <label for="cpassword" class="block text-xs font-medium text-neutral-400 mb-1.5">Confirm Password</label>
-                        <input type="password" name="cpassword" id="cpassword" required minlength="6"
+                        <input type="password" name="cpassword" id="cpassword" required minlength="8"
                             class="input-field" placeholder="Confirm your password">
                         <p id="pw-match" class="text-[11px] mt-1 hidden"></p>
                     </div>
@@ -207,7 +205,7 @@ $page_title = 'Register - Voting System';
         function validateStep2() {
             var pw = document.getElementById('password').value;
             var cpw = document.getElementById('cpassword').value;
-            if (pw.length < 6) { showToast('error', 'Password must be at least 6 characters'); return false; }
+            if (pw.length < 8) { showToast('error', 'Password must be at least 8 characters'); return false; }
             if (pw !== cpw) { showToast('error', 'Passwords do not match'); return false; }
             return true;
         }
@@ -271,7 +269,7 @@ $page_title = 'Register - Voting System';
         }
 
         <?php $flash = get_flash(); if ($flash): ?>
-        document.addEventListener('DOMContentLoaded', function() { showToast('<?= $flash['type'] ?>', '<?= sanitize($flash['message']) ?>'); });
+        document.addEventListener('DOMContentLoaded', function() { showToast('<?= in_array($flash['type'], ['success','error']) ? $flash['type'] : 'error' ?>', '<?= sanitize($flash['message']) ?>'); });
         <?php endif; ?>
 
         document.querySelectorAll('form[data-loading]').forEach(function(f) { f.addEventListener('submit', function() { document.getElementById('loading-overlay')?.classList.remove('hidden'); }); });

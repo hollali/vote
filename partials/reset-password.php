@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once __DIR__ . '/../actions/connect.php';
 
 $token = $_GET['token'] ?? '';
@@ -34,7 +33,7 @@ $page_title = 'Reset Password';
                 <div>
                     <label class="block text-xs font-medium text-neutral-400 mb-1.5">New Password</label>
                     <input type="password" name="password" required
-                        class="input-field" placeholder="Min 6 characters">
+                        class="input-field" placeholder="Min 8 characters">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-neutral-400 mb-1.5">Confirm Password</label>
@@ -57,7 +56,7 @@ $page_title = 'Reset Password';
     <script>
         function showToast(t,m){var c=document.getElementById('toast-container');var cols={success:'bg-neutral-800 border border-neutral-700',error:'bg-neutral-800 border border-red-900/40'};var ic={success:'text-neutral-400',error:'text-red-500'};var sv={success:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>',error:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'};var e=document.createElement('div');e.className='flex items-center gap-3 '+(cols[t]||cols.error)+' text-white px-4 py-3 rounded-lg shadow-xl transform transition-all duration-300 translate-x-full opacity-0';e.innerHTML='<svg class="w-4 h-4 flex-shrink-0 icon-pop '+(ic[t]||ic.error)+'" fill="none" stroke="currentColor" viewBox="0 0 24 24">'+(sv[t]||sv.error)+'</svg><span class="text-sm '+(t==='success'?'text-neutral-200':'text-red-400')+'">'+m+'</span>';c.appendChild(e);requestAnimationFrame(function(){e.classList.remove('translate-x-full','opacity-0')});setTimeout(function(){e.classList.add('translate-x-full','opacity-0');setTimeout(function(){e.remove()},300)},4000)}
         <?php $flash = get_flash(); if ($flash): ?>
-        document.addEventListener('DOMContentLoaded', function() { showToast('<?= $flash['type'] ?>', '<?= sanitize($flash['message']) ?>'); });
+        document.addEventListener('DOMContentLoaded', function() { showToast('<?= in_array($flash['type'], ['success','error']) ? $flash['type'] : 'error' ?>', '<?= sanitize($flash['message']) ?>'); });
         <?php endif; ?>
     </script>
 </body>

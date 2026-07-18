@@ -1,10 +1,16 @@
 <?php
-session_start();
 require_once __DIR__ . '/connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token()) {
         set_flash('error', 'Invalid request');
+        header('Location: ../partials/registration.php');
+        exit;
+    }
+
+    $ip = get_client_ip();
+    if (is_rate_limited($con, $ip, 3, 60)) {
+        set_flash('error', 'Too many registration attempts. Please wait 1 hour.');
         header('Location: ../partials/registration.php');
         exit;
     }
@@ -15,6 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cpassword = $_POST['cpassword'];
     $email = trim($_POST['email'] ?? '');
     $std = $_POST['std'];
+
+    if (!in_array($std, ['voter'])) {
+        set_flash('error', 'Invalid registration type');
+        header('Location: ../partials/registration.php');
+        exit;
+    }
 
     if (strlen($username) < 3 || strlen($username) > 50) {
         set_flash('error', 'Username must be 3-50 characters');
@@ -34,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if (strlen($password) < 6) {
-        set_flash('error', 'Password must be at least 6 characters');
+    if (strlen($password) < 8) {
+        set_flash('error', 'Password must be at least 8 characters');
         header('Location: ../partials/registration.php');
         exit;
     }

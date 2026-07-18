@@ -1,15 +1,26 @@
 <?php
+require_once __DIR__ . '/../config/config.php';
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
 session_start();
 
-// --- Database Config ---
-$db_host = "localhost";
-$db_user = "root";
-$db_pass = "Vendetta7080";
-$db_name = "vote";
+// --- Security Headers ---
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
-$con = new mysqli($db_host, $db_user, $db_pass, $db_name);
+// --- Database Connection ---
+$con = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($con->connect_error) {
-    die("Database connection failed: " . $con->connect_error);
+    http_response_code(500);
+    die('A database error occurred. Please try again later.');
 }
 $con->set_charset("utf8mb4");
 
@@ -29,7 +40,11 @@ function verify_csrf_token() {
     if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token'])) {
         return false;
     }
-    return hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
+    $valid = hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
+    if ($valid) {
+        unset($_SESSION['csrf_token']);
+    }
+    return $valid;
 }
 
 // --- Sanitize ---
@@ -99,7 +114,9 @@ function get_client_ip() {
 
 // --- Flash Messages ---
 function set_flash($type, $message) {
-    $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+    $allowed = ['success', 'error', 'warning', 'info'];
+    $safe_type = in_array($type, $allowed) ? $type : 'info';
+    $_SESSION['flash'] = ['type' => $safe_type, 'message' => $message];
 }
 
 function get_flash() {
@@ -114,6 +131,7 @@ function get_flash() {
 // --- Upload Validation ---
 function validate_image_upload($file, $max_size = 2097152) {
     $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $mime_to_ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
 
     if ($file['error'] !== UPLOAD_ERR_OK) {
         return ['valid' => false, 'error' => 'Upload failed'];
@@ -131,7 +149,7 @@ function validate_image_upload($file, $max_size = 2097152) {
         return ['valid' => false, 'error' => 'File must be under 2MB'];
     }
 
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $ext = $mime_to_ext[$mime];
     $safe_name = bin2hex(random_bytes(16)) . '.' . $ext;
 
     return ['valid' => true, 'name' => $safe_name, 'tmp' => $file['tmp_name']];

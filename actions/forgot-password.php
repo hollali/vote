@@ -1,10 +1,16 @@
 <?php
-session_start();
-require_once __DIR__ . '/../actions/connect.php';
+require_once __DIR__ . '/connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token()) {
         set_flash('error', 'Invalid request');
+        header('Location: ../partials/forgot-password.php');
+        exit;
+    }
+
+    $ip = get_client_ip();
+    if (is_rate_limited($con, $ip, 3, 15)) {
+        set_flash('error', 'Too many attempts. Please wait 15 minutes.');
         header('Location: ../partials/forgot-password.php');
         exit;
     }
@@ -33,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt2->execute();
         $stmt2->close();
 
-        // In production, send email. For now, show token.
-        set_flash('success', 'Password reset token: ' . $token . ' (In production this would be emailed to you)');
+        // In production, send email. For now, redirect with token in URL only.
+        set_flash('success', 'Reset link generated. You will be redirected now.');
         header('Location: ../partials/reset-password.php?token=' . $token);
         exit;
     } else {

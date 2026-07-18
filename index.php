@@ -1,6 +1,10 @@
 <?php
-session_start();
 require_once __DIR__ . '/actions/connect.php';
+
+if (is_logged_in()) {
+    header('Location: ./partials/dashboard.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,6 +17,13 @@ require_once __DIR__ . '/actions/connect.php';
     <link rel="stylesheet" href="./style.css">
 </head>
 <body class="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
+
+    <?php $flash = get_flash(); ?>
+    <?php if ($flash): ?>
+        <div id="flash-data" data-type="<?= $flash['type'] ?>" data-message="<?= sanitize($flash['message']) ?>" class="hidden"></div>
+    <?php endif; ?>
 
     <div class="w-full max-w-sm">
         <div class="text-center mb-8 icon-fade">
@@ -76,8 +87,9 @@ require_once __DIR__ . '/actions/connect.php';
                         </span>
                         <select name="std" id="std"
                             class="input-field pl-9 pr-10 appearance-none cursor-pointer">
-                            <option value="group">Candidate</option>
                             <option value="voter">Voter</option>
+                            <option value="group">Candidate</option>
+                            <option value="admin">Admin</option>
                         </select>
                         <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <svg class="w-3.5 h-3.5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,5 +114,24 @@ require_once __DIR__ . '/actions/connect.php';
         </div>
     </div>
 
+    <script>
+        function showToast(type, message) {
+            var container = document.getElementById('toast-container');
+            var s = {
+                success: { bg: 'bg-neutral-800 border border-neutral-700', text: 'text-neutral-200', icon: 'text-neutral-400', svg: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' },
+                error: { bg: 'bg-neutral-800 border border-red-900/40', text: 'text-red-400', icon: 'text-red-500', svg: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' }
+            }[type] || { bg: 'bg-neutral-800 border border-neutral-700', text: 'text-neutral-300', icon: 'text-neutral-400', svg: '' };
+            var toast = document.createElement('div');
+            toast.className = 'flex items-center gap-3 ' + s.bg + ' rounded-lg px-4 py-3 shadow-xl transform transition-all duration-300 translate-x-full opacity-0';
+            toast.innerHTML = '<svg class="w-4 h-4 flex-shrink-0 icon-pop ' + s.icon + '" fill="none" stroke="currentColor" viewBox="0 0 24 24">' + s.svg + '</svg><span class="text-sm ' + s.text + '">' + message + '</span>';
+            container.appendChild(toast);
+            requestAnimationFrame(function() { toast.classList.remove('translate-x-full', 'opacity-0'); });
+            setTimeout(function() { toast.classList.add('translate-x-full', 'opacity-0'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var flash = document.getElementById('flash-data');
+            if (flash && flash.dataset.type && flash.dataset.message) showToast(flash.dataset.type, flash.dataset.message);
+        });
+    </script>
 </body>
 </html>

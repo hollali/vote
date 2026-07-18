@@ -4,7 +4,16 @@ require_once __DIR__ . '/../includes/header.php';
 require_login();
 
 $data = $_SESSION['data'];
-$statusText = $_SESSION['status'] == 1 ? 'Voted' : 'Not Voted';
+
+$has_voted = false;
+if ($active_election) {
+    $check = $con->prepare("SELECT id FROM election_votes WHERE election_id = ? AND user_id = ?");
+    $check->bind_param("ii", $active_election['id'], $_SESSION['id']);
+    $check->execute();
+    $has_voted = $check->get_result()->num_rows > 0;
+    $check->close();
+}
+$statusText = $has_voted ? 'Voted' : 'Not Voted';
 
 $stmt = $con->prepare("SELECT username, photo, votes, id FROM userdata WHERE standard = 'group'");
 $stmt->execute();
@@ -24,7 +33,7 @@ $stmt->close();
             <p class="text-neutral-500 text-xs mt-0.5">
                 Voter ID: <?= sanitize($data['idNum']) ?>
                 &middot;
-                <span class="<?= $_SESSION['status'] == 1 ? 'text-neutral-300' : 'text-neutral-500' ?> font-medium"><?= $statusText ?></span>
+                <span class="<?= $has_voted ? 'text-neutral-300' : 'text-neutral-500' ?> font-medium"><?= $statusText ?></span>
             </p>
         </div>
     </div>
@@ -48,7 +57,7 @@ $stmt->close();
     <div class="lg:col-span-2 space-y-3">
         <div class="flex items-center justify-between mb-1">
             <h2 class="text-sm font-semibold text-neutral-300">Candidates</h2>
-            <?php if ($_SESSION['status'] == 1): ?>
+            <?php if ($has_voted): ?>
                 <span class="inline-flex items-center gap-1 text-[11px] font-medium text-neutral-400 bg-white/[0.04] px-2.5 py-1 rounded-full border border-neutral-800">
                     <svg class="w-3 h-3 icon-draw" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     Voted
@@ -68,11 +77,11 @@ $stmt->close();
                             <h3 class="text-sm text-neutral-200 font-medium"><?= sanitize($g['username']) ?></h3>
                             <div class="flex items-center gap-1 mt-0.5">
                                 <svg class="w-3 h-3 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                <span class="text-[11px] text-neutral-500"><span class="font-semibold text-neutral-300"><?= $g['votes'] ?></span> votes</span>
+                                <span class="text-[11px] text-neutral-500"><span class="font-semibold text-neutral-300"><?= intval($g['votes']) ?></span> votes</span>
                             </div>
                         </div>
                         <div class="flex-shrink-0">
-                            <?php if ($_SESSION['status'] == 1): ?>
+                            <?php if ($has_voted): ?>
                                 <span class="inline-flex items-center gap-1 text-[11px] font-medium text-neutral-400 bg-white/[0.04] px-3 py-1.5 rounded-md border border-neutral-800">
                                     <svg class="w-3 h-3 icon-draw" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                     Voted
@@ -116,7 +125,7 @@ $stmt->close();
                     </div>
                     <div class="flex items-center justify-between bg-white/[0.02] rounded-md px-3 py-2">
                         <span class="text-neutral-500 text-xs">Status</span>
-                        <span class="text-xs font-medium <?= $_SESSION['status'] == 1 ? 'text-neutral-300' : 'text-neutral-500' ?>"><?= $statusText ?></span>
+                        <span class="text-xs font-medium <?= $has_voted ? 'text-neutral-300' : 'text-neutral-500' ?>"><?= $statusText ?></span>
                     </div>
                 </div>
                 <a href="<?= $base_url ?>/partials/profile.php" class="w-full mt-3 block text-center text-xs text-neutral-500 hover:text-neutral-300 font-medium transition bg-white/[0.03] hover:bg-white/[0.06] rounded-md py-2 border border-neutral-800/50">

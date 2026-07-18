@@ -1,5 +1,4 @@
 <?php
-session_start();
 include('connect.php');
 
 if (!isset($_SESSION['id'])) {
@@ -18,12 +17,6 @@ if (!verify_csrf_token()) {
     exit;
 }
 
-if ($_SESSION['status'] == 1) {
-    set_flash('error', 'You have already voted');
-    header('Location: ../partials/dashboard.php');
-    exit;
-}
-
 $gid = intval($_POST['groupid']);
 $uid = intval($_SESSION['id']);
 
@@ -33,25 +26,51 @@ if ($gid <= 0 || $uid <= 0) {
     exit;
 }
 
-$updatevotes = $con->prepare("UPDATE userdata SET votes = votes + 1 WHERE id = ?");
-$updatevotes->bind_param("i", $gid);
-$updatevotes->execute();
+$active = get_active_election($con);
+if (!$active) {
+    set_flash('error', 'No active election at this time');
+    header('Location: ../partials/dashboard.php');
+    exit;
+}
 
-$updatestatus = $con->prepare("UPDATE userdata SET status = 1 WHERE id = ?");
-$updatestatus->bind_param("i", $uid);
-$updatestatus->execute();
+$check = $con->prepare("SELECT id FROM userdata WHERE id = ? AND standard = 'group'");
+$check->bind_param("i", $gid);
+$check->execute();
+if ($check->get_result()->num_rows === 0) {
+    $check->close();
+    set_flash('error', 'Invalid candidate');
+    header('Location: ../partials/dashboard.php');
+    exit;
+}
+$check->close();
 
-if ($updatevotes->affected_rows >= 0 && $updatestatus->affected_rows >= 0) {
+$election_id = $active['id'];
+
+try {
+    $con->begin_transaction();
+
+    $stmt = $con->prepare("INSERT INTO election_votes (election_id, user_id, candidate_id) VALUES (?, ?, ?)");
+    $stmt->bind_param("iii", $election_id, $uid, $gid);
+    $stmt->execute();
+    $stmt->close();
+
+    $inc = $con->prepare("UPDATE userdata SET votes = votes + 1 WHERE id = ?");
+    $inc->bind_param("i", $gid);
+    $inc->execute();
+    $inc->close();
+
+    $con->commit();
+
     $getgroups = $con->prepare("SELECT username, photo, votes, id FROM userdata WHERE standard = 'group'");
     $getgroups->execute();
-    $groups = $getgroups->get_result()->fetch_all(MYSQLI_ASSOC);
-    $_SESSION['groups'] = $groups;
-    $_SESSION['status'] = 1;
+    $_SESSION['groups'] = $getgroups->get_result()->fetch_all(MYSQLI_ASSOC);
+    $_SESSION['has_voted'] = true;
 
-    log_audit($con, $uid, 'vote_cast', "Voted for candidate #$gid");
+    log_audit($con, $uid, 'vote_cast', "Voted for candidate #$gid in election #$election_id");
     set_flash('success', 'Vote cast successfully!');
-} else {
-    set_flash('error', 'Technical error! Please try again.');
+} catch (mysqli_sql_exception $e) {
+    $con->rollback();
+    set_flash('error', 'You have already voted in this election');
 }
 
 header('Location: ../partials/dashboard.php');

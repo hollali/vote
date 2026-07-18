@@ -1,6 +1,6 @@
 RewriteEngine On
 
-# Redirect to HTTPS (uncomment in production)
+# Uncomment when SSL is configured:
 # RewriteCond %{HTTPS} off
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
