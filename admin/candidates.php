@@ -27,8 +27,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($check->get_result()->num_rows > 0) {
                 set_flash('error', 'ID number already exists');
             } else {
-                $stmt = $con->prepare("INSERT INTO userdata (username, idNum, password, photo, standard, status, votes) VALUES (?, ?, ?, 'default.png', 'group', 0, 0)");
-                $stmt->bind_param("sss", $username, $idNum, $password);
+                $photo = 'default.png';
+                if (!empty($_FILES['photo']['name'])) {
+                    $ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+                    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                    if (in_array($ext, $allowed) && $_FILES['photo']['size'] <= 5 * 1024 * 1024) {
+                        $photo = 'candidate_' . bin2hex(random_bytes(8)) . '.' . $ext;
+                        $dest = __DIR__ . '/../uploads/' . $photo;
+                        move_uploaded_file($_FILES['photo']['tmp_name'], $dest);
+                    }
+                }
+                $bio = trim($_POST['bio'] ?? '');
+
+                $stmt = $con->prepare("INSERT INTO userdata (username, idNum, password, photo, bio, standard, status, votes) VALUES (?, ?, ?, ?, ?, 'group', 0, 0)");
+                $stmt->bind_param("sssss", $username, $idNum, $password, $photo, $bio);
                 $stmt->execute();
                 $stmt->close();
                 log_audit($con, $_SESSION['id'], 'candidate_add', $username);
@@ -139,7 +151,7 @@ $cand_stmt->close();
         <svg class="w-3.5 h-3.5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
         Add Candidate
     </h2>
-    <form action="../admin/candidates.php" method="POST" class="space-y-3">
+    <form action="../admin/candidates.php" method="POST" enctype="multipart/form-data" class="space-y-3">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <input type="text" name="username" required placeholder="Candidate name"
                 class="input-field text-xs py-2.5">
@@ -147,6 +159,18 @@ $cand_stmt->close();
                 class="input-field text-xs py-2.5">
             <input type="password" name="password" required placeholder="Password (min 8 chars)"
                 class="input-field text-xs py-2.5">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="text-[11px] text-neutral-500 mb-1 block">Photo (optional)</label>
+                <input type="file" name="photo" accept="image/*"
+                    class="input-field text-xs py-2">
+            </div>
+            <div>
+                <label class="text-[11px] text-neutral-500 mb-1 block">Bio (optional)</label>
+                <input type="text" name="bio" placeholder="Short description"
+                    class="input-field text-xs py-2.5">
+            </div>
         </div>
         <input type="hidden" name="action" value="add_candidate">
         <?php echo csrf_field(); ?>
